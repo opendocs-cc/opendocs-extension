@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowSquareOutIcon, CheckCircleIcon, CopyIcon, FileDocIcon, FilePdfIcon, XIcon } from "@phosphor-icons/react";
 
-import { ANONYMOUS_MAX_BYTES } from "../config";
+import { ANONYMOUS_MAX_BYTES, RATE_URL, STORE } from "../config";
 import { buildDocument, withTitle, type BuiltDocument } from "../markdown/document";
 import type { Extracted } from "../markdown/model";
 import { send } from "../messages";
@@ -32,7 +32,7 @@ type Phase =
   | { name: "reading" }
   | { name: "ready" }
   | { name: "working"; step: string }
-  | { name: "done"; result: PublishResult; copied: boolean }
+  | { name: "done"; result: PublishResult; copied: boolean; rateAnswered?: boolean }
   | { name: "error"; code: PublishErrorCode; message: string };
 
 const VISIBILITY_LABEL: Record<Visibility, string> = {
@@ -251,6 +251,11 @@ export function Card({ site, anchor, initialScope, onClose }: CardProps) {
     }
   }, []);
 
+  const answerRating = useCallback(() => {
+    void send({ type: "rating-answered" }).catch(() => undefined);
+    setPhase((current) => (current.name === "done" ? { ...current, rateAnswered: true } : current));
+  }, []);
+
   const changeDestination = useCallback(async () => {
     const { opened } = await send({ type: "open-side-panel" }).catch(() => ({ opened: false }));
     if (!opened) setNotice("Click the OpenDocs icon in your browser's toolbar to choose where documents go.");
@@ -363,6 +368,19 @@ export function Card({ site, anchor, initialScope, onClose }: CardProps) {
           </p>
         ) : null}
         {notice ? <p className="od-small">{notice}</p> : null}
+        {phase.result.askToRate && !phase.rateAnswered ? (
+          <p className="od-rate">
+            <span>
+              Finding it useful?{" "}
+              <a className="od-btn-link" href={RATE_URL} target="_blank" rel="noreferrer" onClick={answerRating}>
+                Rate it in the {STORE.name}
+              </a>
+            </span>
+            <button type="button" className="od-icon-btn" aria-label="Don't ask again" title="Don't ask again" onClick={answerRating}>
+              <XIcon size={13} weight="bold" />
+            </button>
+          </p>
+        ) : null}
       </div>
     );
   }

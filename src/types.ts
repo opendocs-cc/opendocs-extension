@@ -65,6 +65,8 @@ export type PublishResult = {
   updated: boolean;
   /** Images left out (signed out) or that failed to upload. */
   imagesSkipped: number;
+  /** Ask for a store rating: from the third publish on, until the user rates or says no. */
+  askToRate: boolean;
 };
 
 export type Settings = {

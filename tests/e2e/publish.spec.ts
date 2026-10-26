@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { conversation, textdocs } from "../fixtures/chatgpt";
 import { conversation as claudeConversation } from "../fixtures/claude";
-import { expect, test } from "./harness";
+import { expect, MOCK_API_PORT, test } from "./harness";
 
 const CHAT_ID = "6720b1c4-1f2e-8001-a9c3-5d2b8e7f9a10";
 const LEGACY_CHAT_ID = "6720b1c4-1f2e-8001-a9c3-000000000001";
@@ -71,6 +71,37 @@ test("publishes a ChatGPT answer without an account, then updates it at the same
   await card.getByRole("button", { name: "Update", exact: true }).click();
   await expect(card).toContainText("Updated.");
   expect(api.find("PUT", "/api/v1/anonymous/anonDoc0000000000001")).toBeTruthy();
+});
+
+// `api` mocks OpenDocs for the test.
+test("asks for a rating from the third publish, and not again once answered", async ({ page, api: _api }) => {
+  await page.goto(`https://chatgpt.com/c/${CHAT_ID}`);
+  const button = page.getByRole("button", { name: "Publish to OpenDocs" });
+  const card = page.getByRole("dialog");
+  const rate = card.getByRole("link", { name: "Rate it in the Chrome Web Store" });
+
+  await button.click();
+  await card.getByRole("button", { name: "Agree and publish" }).click();
+  await expect(card).toContainText("Published.");
+  await expect(rate).toHaveCount(0);
+
+  for (const expected of [0, 1]) {
+    await card.getByRole("button", { name: "Close" }).click();
+    await button.click();
+    await card.getByRole("button", { name: "Update", exact: true }).click();
+    await expect(card).toContainText("Updated.");
+    await expect(rate).toHaveCount(expected);
+  }
+  // The test build's opendocs.cc is the mock server.
+  await expect(rate).toHaveAttribute("href", `http://127.0.0.1:${MOCK_API_PORT}/extension/rate?store=chrome`);
+
+  await card.getByRole("button", { name: "Don't ask again" }).click();
+  await expect(rate).toHaveCount(0);
+  await card.getByRole("button", { name: "Close" }).click();
+  await button.click();
+  await card.getByRole("button", { name: "Update", exact: true }).click();
+  await expect(card).toContainText("Updated.");
+  await expect(rate).toHaveCount(0);
 });
 
 test("publishes a whole Gemini chat with every question above its answer", async ({ page, api }) => {

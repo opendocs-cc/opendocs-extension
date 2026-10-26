@@ -3,7 +3,7 @@ import * as opendocs from "../api/opendocs";
 import { hasSession } from "../auth/session";
 import { ANONYMOUS_MAX_BYTES } from "../config";
 import { placeImages } from "../markdown/document";
-import { findRecord, saveRecord } from "../store/local";
+import { countPublish, findRecord, saveRecord } from "../store/local";
 import { PublishError, type DocumentDraft, type PublishRecord, type PublishResult } from "../types";
 import { currentDestination } from "./account";
 
@@ -17,12 +17,15 @@ function bytesOf(base64: string): Uint8Array {
   return bytes;
 }
 
+type Published = Omit<PublishResult, "askToRate">;
+
 export async function publishDraft(draft: DocumentDraft, mode: "new" | "update"): Promise<PublishResult> {
   const previous = mode === "update" ? await findRecord(draft.sourceKey) : null;
-  return (await hasSession()) ? publishSignedIn(draft, previous) : publishAnonymously(draft, previous);
+  const result = (await hasSession()) ? await publishSignedIn(draft, previous) : await publishAnonymously(draft, previous);
+  return { ...result, askToRate: await countPublish() };
 }
 
-async function publishSignedIn(draft: DocumentDraft, previous: PublishRecord | null): Promise<PublishResult> {
+async function publishSignedIn(draft: DocumentDraft, previous: PublishRecord | null): Promise<Published> {
   const destination = await currentDestination();
   if (!destination) throw new PublishError("unknown", "Your account has no workspace yet. Open opendocs.cc to finish setting it up.");
   const workspaceId = previous?.kind === "workspace" ? previous.workspaceId : destination.workspace.id;
@@ -65,7 +68,7 @@ async function publishSignedIn(draft: DocumentDraft, previous: PublishRecord | n
   return { record, updated: updating, imagesSkipped: Math.max(0, imagesSkipped) };
 }
 
-async function publishAnonymously(draft: DocumentDraft, previous: PublishRecord | null): Promise<PublishResult> {
+async function publishAnonymously(draft: DocumentDraft, previous: PublishRecord | null): Promise<Published> {
   const markdown = placeImages(draft.markdown, new Map(), SIGNED_OUT_IMAGE_NOTE);
   if (new TextEncoder().encode(markdown).byteLength > ANONYMOUS_MAX_BYTES) {
     throw new PublishError("too_long_anonymous", "This is too long to publish without an account. Sign in (it's free) to publish it.");

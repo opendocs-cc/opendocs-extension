@@ -20,6 +20,12 @@ export const config = {
   scopes: ["docs:read", "docs:write", "offline_access"],
 };
 
+/** The store this build is for (`wxt -b edge` makes Edge's). */
+export const STORE = import.meta.env.BROWSER === "edge" ? { id: "edge", name: "Edge Add-ons" } : { id: "chrome", name: "Chrome Web Store" };
+
+/** "Rate it": opendocs.cc sends this to the store listing's reviews. */
+export const RATE_URL = `${webUrl}/extension/rate?store=${STORE.id}`;
+
 /** Anonymous documents' limit (FREE_TOOL_LIMITS.anonymousPublish.maxBytes). */
 export const ANONYMOUS_MAX_BYTES = 512_000;
 

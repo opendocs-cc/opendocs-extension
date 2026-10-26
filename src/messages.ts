@@ -28,6 +28,7 @@ export type Request =
   | { type: "settings" }
   | { type: "set-settings"; settings: Partial<Settings> }
   | { type: "open-side-panel" }
+  | { type: "rating-answered" }
   | { type: "failure"; site: SiteId; stage: FailureStage; code: string; extractor?: string };
 
 export type FailureStage = "detect" | "anchors" | "extract-api" | "extract-dom" | "publish" | "signin";
@@ -50,6 +51,7 @@ export type Responses = {
   settings: Settings;
   "set-settings": Settings;
   "open-side-panel": { opened: boolean };
+  "rating-answered": { answered: true };
   failure: { sent: boolean };
 };
 

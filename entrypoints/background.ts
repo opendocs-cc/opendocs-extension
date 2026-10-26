@@ -4,7 +4,7 @@ import { authState, chooseDestination, destinationChoices, signInAndClaim, signO
 import { openDownload, publishDraft } from "../src/background/publish";
 import { config } from "../src/config";
 import { envelope, type Request, type Responses } from "../src/messages";
-import { findRecord, getRecords, getSettings, setSettings } from "../src/store/local";
+import { answerRatingPrompt, findRecord, getRecords, getSettings, setSettings } from "../src/store/local";
 
 /**
  * The service worker: the only part of the extension that holds tokens or
@@ -49,6 +49,9 @@ async function handle(request: Request, sender: Browser.runtime.MessageSender): 
         return { opened: false };
       }
     }
+    case "rating-answered":
+      await answerRatingPrompt();
+      return { answered: true };
     case "failure": {
       const key = `${request.site}:${request.stage}:${request.code}`;
       const last = recentFailures.get(key) ?? 0;

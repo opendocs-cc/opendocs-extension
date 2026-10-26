@@ -204,6 +204,22 @@
   margin-bottom: 2px;
 }
 
+.od-rate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--od-border);
+  color: var(--od-text-muted);
+  font-size: 12.5px;
+}
+.od-rate .od-icon-btn {
+  width: 22px;
+  height: 22px;
+}
+
 .od-small {
   margin: 0;
   color: var(--od-text-faint);
