@@ -1,0 +1,212 @@
+/* The side panel and the welcome page. */
+
+html,
+body {
+  margin: 0;
+  background: var(--od-bg, #fff);
+}
+body {
+  min-height: 100vh;
+}
+
+.od-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--od-bg);
+}
+
+.od-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 12px;
+}
+.od-panel-head .od-mark {
+  width: 24px;
+  height: 24px;
+}
+.od-panel-head h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.od-panel-head p {
+  margin: 0;
+  color: var(--od-text-faint);
+  font-size: 12px;
+}
+
+.od-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--od-border);
+}
+.od-section h2 {
+  margin: 0;
+  color: var(--od-text-faint);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+.od-section p {
+  margin: 0;
+}
+
+.od-buttons {
+  display: grid;
+  gap: 8px;
+}
+
+.od-recent {
+  display: grid;
+  gap: 2px;
+  margin: 0 -8px;
+  padding: 0;
+  list-style: none;
+}
+.od-recent li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--od-radius-control);
+}
+.od-recent li:hover {
+  background: var(--od-bg-muted);
+}
+.od-recent a {
+  display: block;
+  overflow: hidden;
+  color: var(--od-text);
+  font-weight: 600;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.od-recent a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.od-recent small {
+  display: block;
+  margin-top: 2px;
+  color: var(--od-text-faint);
+  font-size: 12px;
+}
+.od-recent .od-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--od-text-faint);
+  cursor: pointer;
+}
+.od-recent .od-icon-btn:hover {
+  background: var(--od-bg);
+  color: var(--od-text);
+}
+
+.od-panel-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: auto;
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--od-border);
+  font-size: 12px;
+}
+.od-panel-foot a {
+  color: var(--od-text-faint);
+  text-decoration: none;
+}
+.od-panel-foot a:hover {
+  color: var(--od-text);
+  text-decoration: underline;
+}
+
+.od-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.od-account strong {
+  font-weight: 650;
+}
+
+/* Welcome page */
+.od-welcome {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+  font-size: 14px;
+}
+.od-welcome .od-mark {
+  width: 40px;
+  height: 40px;
+}
+.od-welcome h1 {
+  margin: 20px 0 8px;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.od-welcome .od-lead {
+  margin: 0;
+  color: var(--od-text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.od-welcome-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+  padding: 20px;
+  border-radius: var(--od-radius);
+  background: var(--od-bg);
+  box-shadow: var(--od-shadow);
+}
+.od-welcome-card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.od-points {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.od-points li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  color: var(--od-text-muted);
+  line-height: 1.5;
+}
+.od-points svg {
+  margin-top: 2px;
+  color: var(--od-accent);
+}
+.od-sites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.od-sites a {
+  text-decoration: none;
+}
+.od-welcome .od-btn {
+  height: 38px;
+  font-size: 14px;
+}

@@ -1,0 +1,8 @@
+node_modules
+.output
+.wxt
+stats.html
+test-results
+playwright-report
+.env.local
+*.pem

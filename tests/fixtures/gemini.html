@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head><title>Compound interest - Gemini</title></head>
+<body>
+<div data-test-id="chat-history-container">
+  <span data-test-id="conversation-title">Compound interest explained</span>
+  <div class="conversation-container">
+    <user-query><div class="query-text"><p class="query-text-line">How does compound interest work?</p><p class="query-text-line">Give the formula.</p></div></user-query>
+    <model-response>
+      <thought-container><div>Thinking about interest…</div></thought-container>
+      <message-content>
+        <div class="markdown">
+          <h2>The formula</h2>
+          <p>The amount after <span class="math-inline" data-math="t">t</span> years is:</p>
+          <div class="math-block" data-math="A = P\left(1 + \frac{r}{n}\right)^{nt}"><span aria-hidden="true">A=P(1+r/n)^nt</span></div>
+          <table><thead><tr><th>Year</th><th>Balance</th></tr></thead><tbody><tr><td>1</td><td>1,050</td></tr><tr><td>2</td><td>1,102.50</td></tr></tbody></table>
+          <code-block><div class="code-block-decoration"><span>Python</span><button>Copy</button></div><pre><code>balance = 1000 * (1 + 0.05) ** 2</code></pre></code-block>
+          <p>Banks quote this as APY<sup class="superscript">+1</sup>. [cite_start]Rates vary.[cite: 1, 2]</p>
+          <sources-carousel-inline><a href="https://example.com/apy">Source</a></sources-carousel-inline>
+          <p>http://googleusercontent.com/immersive_entry_chip/0</p>
+        </div>
+      </message-content>
+      <message-actions><button data-test-id="copy-button" aria-label="Copy">Copy</button></message-actions>
+    </model-response>
+  </div>
+  <div class="conversation-container">
+    <user-query><div class="query-text"><p class="query-text-line">And with monthly deposits?</p></div></user-query>
+    <model-response>
+      <message-content><div class="markdown"><p>Add the future value of an annuity.</p><img src="https://lh3.googleusercontent.com/chart.png" alt="Growth chart"></div></message-content>
+      <message-actions><button data-test-id="copy-button" aria-label="Copy">Copy</button></message-actions>
+    </model-response>
+  </div>
+</div>
+</body>
+</html>

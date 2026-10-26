@@ -1,0 +1,232 @@
+/*
+ * OpenDocs tokens for the extension's surfaces: the card on chat pages, the
+ * side panel and the welcome page. One accent (OpenDocs purple), zinc
+ * neutrals, one radius scale (14px surfaces, 8px controls), the system font
+ * so it sits naturally next to each chat app. Dark follows the host page
+ * (data-theme) or the system.
+ */
+
+.od-root {
+  --od-accent: #6b3fc9;
+  --od-accent-hover: #5b33b0;
+  --od-accent-soft: #f4f0fd;
+  --od-accent-text: #5b33b0;
+  --od-on-accent: #ffffff;
+  --od-bg: #ffffff;
+  --od-bg-muted: #f7f7f8;
+  --od-border: rgba(24, 24, 27, 0.1);
+  --od-border-strong: rgba(24, 24, 27, 0.18);
+  --od-text: #18181b;
+  --od-text-muted: #52525b;
+  --od-text-faint: #6b6b74;
+  --od-danger: #b42318;
+  --od-danger-soft: #fef3f2;
+  --od-shadow: 0 24px 48px -20px rgba(38, 24, 72, 0.35), 0 0 0 1px rgba(24, 24, 27, 0.08);
+  --od-radius: 14px;
+  --od-radius-control: 8px;
+  --od-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --od-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  color: var(--od-text);
+  font-family: var(--od-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.od-root[data-theme="dark"] {
+  --od-accent: #9e77ed;
+  --od-accent-hover: #b692f6;
+  --od-accent-soft: rgba(158, 119, 237, 0.16);
+  --od-accent-text: #d6bbfb;
+  --od-on-accent: #160d2b;
+  --od-bg: #1d1c21;
+  --od-bg-muted: #27262c;
+  --od-border: rgba(255, 255, 255, 0.1);
+  --od-border-strong: rgba(255, 255, 255, 0.18);
+  --od-text: #f4f4f5;
+  --od-text-muted: #b4b4bc;
+  --od-text-faint: #9b9ba5;
+  --od-danger: #fda29b;
+  --od-danger-soft: rgba(240, 68, 56, 0.14);
+  --od-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .od-root[data-theme="auto"] {
+    --od-accent: #9e77ed;
+    --od-accent-hover: #b692f6;
+    --od-accent-soft: rgba(158, 119, 237, 0.16);
+    --od-accent-text: #d6bbfb;
+    --od-on-accent: #160d2b;
+    --od-bg: #1d1c21;
+    --od-bg-muted: #27262c;
+    --od-border: rgba(255, 255, 255, 0.1);
+    --od-border-strong: rgba(255, 255, 255, 0.18);
+    --od-text: #f4f4f5;
+    --od-text-muted: #b4b4bc;
+    --od-text-faint: #9b9ba5;
+    --od-danger: #fda29b;
+    --od-danger-soft: rgba(240, 68, 56, 0.14);
+    --od-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+}
+
+.od-root *,
+.od-root *::before,
+.od-root *::after {
+  box-sizing: border-box;
+}
+
+/* Controls shared by every surface. */
+.od-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--od-radius-control);
+  font: 600 13px/1 var(--od-font);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+.od-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.od-btn:focus-visible,
+.od-field:focus-visible,
+.od-seg button:focus-visible,
+.od-switch:focus-visible {
+  outline: 2px solid var(--od-accent);
+  outline-offset: 2px;
+}
+.od-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.od-btn-primary {
+  background: var(--od-accent);
+  color: var(--od-on-accent);
+}
+.od-btn-primary:hover:not(:disabled) {
+  background: var(--od-accent-hover);
+}
+.od-btn-secondary {
+  background: transparent;
+  color: var(--od-text);
+  box-shadow: inset 0 0 0 1px var(--od-border-strong);
+}
+.od-btn-secondary:hover:not(:disabled) {
+  background: var(--od-bg-muted);
+}
+.od-btn-link {
+  height: auto;
+  padding: 0;
+  background: none;
+  color: var(--od-accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.od-btn-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.od-field {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--od-radius-control);
+  background: var(--od-bg);
+  color: var(--od-text);
+  box-shadow: inset 0 0 0 1px var(--od-border-strong);
+  font: 400 13px/1.2 var(--od-font);
+}
+select.od-field {
+  appearance: none;
+  padding-right: 28px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 15px) 16px, calc(100% - 10px) 16px;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.od-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--od-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.od-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--od-radius-control);
+  background: var(--od-bg-muted);
+  box-shadow: inset 0 0 0 1px var(--od-border);
+}
+.od-seg button {
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--od-text-muted);
+  font: 600 12.5px/1 var(--od-font);
+  cursor: pointer;
+}
+.od-seg button[aria-pressed="true"] {
+  background: var(--od-bg);
+  color: var(--od-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--od-border);
+}
+
+.od-switch {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--od-border-strong);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.od-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 140ms ease;
+}
+.od-switch[aria-checked="true"] {
+  background: var(--od-accent);
+}
+.od-switch[aria-checked="true"]::after {
+  transform: translateX(12px);
+}
+
+.od-muted {
+  color: var(--od-text-muted);
+}
+.od-faint {
+  color: var(--od-text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .od-root * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
