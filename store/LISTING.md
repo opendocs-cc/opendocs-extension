@@ -66,7 +66,8 @@ AI chat site) as an OpenDocs document, with a link and a PDF.
 
 | Permission | Justification |
 | --- | --- |
-| Host access: chatgpt.com, claude.ai, gemini.google.com (content scripts) | Shows the Publish button under each answer and, when the user clicks it, reads that answer or chat so it can be published. The extension does nothing on any other site. |
+| Host permissions: chatgpt.com, claude.ai, gemini.google.com (also the content scripts' sites) | Shows the Publish button under each answer and, when the user clicks it, reads that answer or chat so it can be published. Lets the side panel see that the open tab is one of these chat sites. The extension does nothing on any other site. |
+| `scripting` | Starts the Publish button in chat tabs that were already open when the extension was installed or updated, so people don't have to reload them. Only on the three chat sites, and only the extension's own packaged script. |
 | `identity` | Opens the OpenDocs sign-in window (OAuth with PKCE) when the user chooses to sign in. |
 | `storage` | Keeps the user's settings, the OpenDocs sign-in tokens and a list of the user's 20 most recent publishes. No chat content is stored. |
 | `sidePanel` | The toolbar icon opens a side panel with the account, where documents go, recent publishes and publish buttons. |
@@ -95,7 +96,7 @@ history, user activity (clicks, keystrokes), other sites' content.
 | --- | --- | --- |
 | Icon | 128 × 128 | `public/icon/128.png` (in the package) |
 | Small promo tile | 440 × 280 | `store/promo-440x280.png` |
-| Screenshots (up to 5) | 1280 × 800 | Take on the real sites after installing: the button and card on ChatGPT, the whole-chat card on Gemini, the published page, the PDF, the side panel. `store/screenshots/raw/` has drafts of the extension's own UI. |
+| Screenshots (up to 5) | 1280 × 800 (or 640 × 400) | Take on the real sites with demo chats (no private content): the button and card on ChatGPT, the whole-chat card on Gemini, the published page, the PDF, the side panel. A 16:10 window scales exactly to 1280 × 800. `store/screenshots/raw/` has drafts of the extension's own UI. |
 
 ## Reviewer notes (Chrome "Test instructions")
 
