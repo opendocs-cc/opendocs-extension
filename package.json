@@ -1,6 +1,6 @@
 {
   "name": "opendocs-extension",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Publish ChatGPT, Claude and Gemini answers and chats as OpenDocs documents: a clean link and a PDF.",
   "license": "MIT",

@@ -137,12 +137,15 @@ export function startContent(site: SiteAdapter): void {
     anchors = site.anchors();
     for (const anchor of anchors) {
       const existing = buttons.get(anchor.answer);
-      if (existing?.isConnected) continue;
+      // Placed after the answer earlier, and the row has appeared since (some
+      // sites render it on hover): move it into the row.
+      if (existing?.isConnected && (existing.dataset.placed === "row" || !anchor.inRow)) continue;
       const button = existing ?? makeButton(site, anchor.answer, () => anchors.find((a) => a.answer === anchor.answer));
       buttons.set(anchor.answer, button);
       created.add(button);
       try {
         anchor.place(button);
+        button.dataset.placed = anchor.inRow ? "row" : "after";
       } catch {
         // The row moved under us; the next scan places it.
       }

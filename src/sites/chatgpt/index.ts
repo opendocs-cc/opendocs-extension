@@ -1,14 +1,86 @@
 import { htmlToMarkdown } from "../../markdown/html";
 import { normalizeMath } from "../../markdown/math";
 import { hashKey, type Extracted, type ImageSource, type Turn } from "../../markdown/model";
-import { after, cookie, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
+import { actionRow, after, appendTo, cookie, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
 import { appendCanvases, parseConversation, type Conversation } from "./parse";
 
 const CHAT_ID = /\/(?:c|g\/[^/]+\/c)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+
+// The conversation as ChatGPT renders it since its September 2026 redesign:
+// a thread of turns, each with message units that carry their message ids,
+// user messages in a bubble, and a row of actions under each answer. ChatGPT
+// keeps earlier conversations mounted but hidden, so only visible ones count.
+const THREAD = "[data-chatgpt-conversation-selection-target]";
+const TURN_KEY = "[data-turn-key]";
+const UNIT = "[data-chatgpt-search-message-ids]";
+const USER_BUBBLE = ".bg-user-message";
+const ACTIONS = ".turn-action-controls";
+
+// The layout before the redesign, still used in some views.
 const ASSISTANT = '[data-message-author-role="assistant"]';
 const USER = '[data-message-author-role="user"]';
 const TURN = 'article[data-testid^="conversation-turn"], [data-testid^="conversation-turn"]';
 const COPY = 'button[data-testid="copy-turn-action-button"]';
+
+const shown = (element: Element) => (element as HTMLElement).offsetHeight > 0 || (element as HTMLElement).getClientRects().length > 0;
+
+/** An answer on the page: its element, message ids, content and action row. */
+type PageAnswer = { element: HTMLElement; ids: string[]; content: HTMLElement; row: Element | null };
+
+function visibleThread(): Element | null {
+  return Array.from(document.querySelectorAll(THREAD)).find(shown) ?? null;
+}
+
+function outermostUnits(root: Element): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(UNIT)).filter((unit) => !unit.parentElement?.closest(UNIT));
+}
+
+function unitIds(unit: Element): string[] {
+  return (unit.getAttribute("data-chatgpt-search-message-ids") ?? "").split(/\s+/).filter(Boolean);
+}
+
+function isUserUnit(unit: Element): boolean {
+  return unit.matches(USER_BUBBLE) || unit.querySelector(USER_BUBBLE) !== null || unit.closest(USER_BUBBLE) !== null;
+}
+
+function redesignedAnswers(thread: Element): PageAnswer[] {
+  const turns = Array.from(thread.querySelectorAll<HTMLElement>(TURN_KEY)).filter((turn) => !turn.parentElement?.closest(TURN_KEY));
+  if (turns.length === 0) {
+    return outermostUnits(thread)
+      .filter((unit) => !isUserUnit(unit))
+      .map((unit) => ({ element: unit, ids: unitIds(unit), content: unit, row: null }));
+  }
+  const answers: PageAnswer[] = [];
+  for (const turn of turns) {
+    const assistant = outermostUnits(turn).filter((unit) => !isUserUnit(unit));
+    if (assistant.length === 0) continue;
+    // The answer's row comes after the user's (edit, copy) when a turn holds both.
+    const row = Array.from(turn.querySelectorAll(ACTIONS)).pop() ?? null;
+    answers.push({ element: turn, ids: assistant.flatMap(unitIds), content: assistant[assistant.length - 1]!, row });
+  }
+  return answers;
+}
+
+function legacyAnswers(): PageAnswer[] {
+  const turns = Array.from(document.querySelectorAll<HTMLElement>(TURN)).filter((turn) => shown(turn) && turn.querySelector(ASSISTANT));
+  const containers = turns.length ? turns : Array.from(document.querySelectorAll<HTMLElement>(ASSISTANT)).filter(shown);
+  return containers.map((container) => {
+    const messages = Array.from(container.querySelectorAll<HTMLElement>(ASSISTANT)).concat(container.matches(ASSISTANT) ? [container] : []);
+    const copy = container.querySelector(COPY);
+    return {
+      element: container,
+      ids: messages.map((node) => node.getAttribute("data-message-id")).filter((id): id is string => Boolean(id)),
+      content: messages[messages.length - 1] ?? container,
+      row: copy ? actionRow(copy) : null,
+    };
+  });
+}
+
+function pageAnswers(): PageAnswer[] {
+  const thread = visibleThread();
+  const answers = thread ? redesignedAnswers(thread) : [];
+  return answers.length ? answers : legacyAnswers();
+}
 
 export function chatGptChatId(pathname: string): string | null {
   return CHAT_ID.exec(pathname)?.[1] ?? null;
@@ -64,19 +136,29 @@ function codeLanguage(pre: Element): string | null {
   return label && /^[\w+#.-]{1,20}$/.test(label) ? label : null;
 }
 
+/** The visible messages in order: [isUser, element, ids]. */
+function pageMessages(): Array<[boolean, HTMLElement, string[]]> {
+  const thread = visibleThread();
+  const units = thread ? outermostUnits(thread) : [];
+  if (units.length) return units.map((unit) => [isUserUnit(unit), unit, unitIds(unit)]);
+  return Array.from(document.querySelectorAll<HTMLElement>(`${USER}, ${ASSISTANT}`))
+    .filter(shown)
+    .map((node) => [node.matches(USER), node, [node.getAttribute("data-message-id") ?? ""].filter(Boolean)]);
+}
+
 function readDom(): Extracted {
   const turns: Turn[] = [];
   let question = "";
-  for (const node of Array.from(document.querySelectorAll<HTMLElement>(`${USER}, ${ASSISTANT}`))) {
-    if (node.matches(USER)) {
-      question = (node.querySelector(".whitespace-pre-wrap") ?? node).textContent?.trim() ?? "";
+  for (const [user, node, ids] of pageMessages()) {
+    if (user) {
+      question = (node.querySelector(".whitespace-pre-wrap") ?? node.querySelector(USER_BUBBLE) ?? node).textContent?.trim() ?? "";
       continue;
     }
     const content = node.querySelector(".markdown") ?? node;
     const context = { sources: [], images: [] } as Pick<Turn, "sources" | "images">;
-    const answer = normalizeMath(htmlToMarkdown(content, context, { codeLanguage }));
+    const answer = normalizeMath(htmlToMarkdown(content, context, { codeLanguage, remove: [ACTIONS, "[data-markdown-copy] button"] }));
     if (!answer) continue;
-    const id = node.getAttribute("data-message-id") ?? "";
+    const id = ids[0] ?? "";
     const last = turns[turns.length - 1];
     if (last && last.question === question && question && last.ids.length) {
       // Several messages in one answer (continuations, tool steps).
@@ -96,22 +178,18 @@ export const chatgpt: SiteAdapter = {
 
   chatId: () => chatGptChatId(location.pathname),
 
-  hasAnswers: () => document.querySelector(ASSISTANT) !== null,
+  hasAnswers: () => pageAnswers().length > 0,
 
   anchors() {
-    const anchors: AnswerAnchor[] = [];
-    const turns = Array.from(document.querySelectorAll<HTMLElement>(TURN)).filter((turn) => turn.querySelector(ASSISTANT));
-    const containers = turns.length ? turns : Array.from(document.querySelectorAll<HTMLElement>(ASSISTANT));
-    containers.forEach((container, index) => {
-      const ids = Array.from(container.querySelectorAll(ASSISTANT))
-        .concat(container.matches(ASSISTANT) ? [container] : [])
-        .map((node) => node.getAttribute("data-message-id"))
-        .filter((id): id is string => Boolean(id));
-      const copy = container.querySelector(COPY);
-      const lastMessage = Array.from(container.querySelectorAll(ASSISTANT)).pop() ?? container;
-      anchors.push({ answer: container, ids, index, inRow: Boolean(copy), place: copy ? after(copy) : after(lastMessage) });
-    });
-    return anchors;
+    return pageAnswers().map(
+      (answer, index): AnswerAnchor => ({
+        answer: answer.element,
+        ids: answer.ids,
+        index,
+        inRow: Boolean(answer.row),
+        place: answer.row ? appendTo(answer.row) : after(answer.content),
+      }),
+    );
   },
 
   async read({ onFallback }) {

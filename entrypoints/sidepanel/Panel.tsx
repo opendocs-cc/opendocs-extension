@@ -32,7 +32,8 @@ function expiry(record: PublishRecord): string | null {
 }
 
 async function activeChat(): Promise<TabInfo> {
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  // The panel's own window: "currentWindow" can come back empty from a side panel.
+  const [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
   if (tab?.id === undefined) return null;
   try {
     const reply = (await browser.tabs.sendMessage(tab.id, { type: "ping" } satisfies TabRequest)) as { chat: boolean; answers: boolean };

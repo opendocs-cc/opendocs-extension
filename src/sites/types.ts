@@ -59,7 +59,27 @@ export function cookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]!) : null;
 }
 
-/** Inserts the button right after `reference` (for action rows). */
+/** Inserts the button right after `reference`. */
 export function after(reference: Element): (button: HTMLElement) => void {
   return (button) => reference.insertAdjacentElement("afterend", button);
+}
+
+/** Adds the button at the end of an action row. */
+export function appendTo(row: Element): (button: HTMLElement) => void {
+  return (button) => {
+    row.appendChild(button);
+  };
+}
+
+/**
+ * The row of answer actions that holds `button` (Copy): sites wrap each
+ * icon in tooltips and other elements, so climb to the first ancestor that
+ * holds at least three buttons.
+ */
+export function actionRow(button: Element, minButtons = 3): Element | null {
+  let element = button.parentElement;
+  for (let depth = 0; element && depth < 6; depth++, element = element.parentElement) {
+    if (element.querySelectorAll("button").length >= minButtons) return element;
+  }
+  return null;
 }

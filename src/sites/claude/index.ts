@@ -1,7 +1,7 @@
 import { htmlToMarkdown } from "../../markdown/html";
 import { normalizeMath } from "../../markdown/math";
 import { hashKey, type Extracted, type ImageSource, type Turn } from "../../markdown/model";
-import { after, cookie, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
+import { actionRow, after, appendTo, cookie, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
 import { parseClaude, type ClaudeConversation } from "./parse";
 
 const CHAT_ID = /\/chat\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
@@ -76,7 +76,8 @@ export const claude: SiteAdapter = {
           (!next || next.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_PRECEDING) &&
           !button.closest(USER),
       );
-      return { answer, ids: [], index, inRow: Boolean(copy), place: copy ? after(copy) : after(answer) };
+      const row = copy ? actionRow(copy) : null;
+      return { answer, ids: [], index, inRow: Boolean(row), place: row ? appendTo(row) : copy ? after(copy) : after(answer) };
     });
   },
 

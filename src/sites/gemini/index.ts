@@ -1,6 +1,6 @@
 import { htmlToMarkdown } from "../../markdown/html";
 import { hashKey, type Extracted, type ImageSource, type Turn } from "../../markdown/model";
-import { after, pageFetch, type AnswerAnchor, type SiteAdapter } from "../types";
+import { actionRow, after, appendTo, pageFetch, type AnswerAnchor, type SiteAdapter } from "../types";
 
 /**
  * Gemini, read from the page: its conversation data is positional arrays
@@ -122,6 +122,7 @@ export const gemini: SiteAdapter = {
     const keys = turnKeys(Array.from(document.querySelectorAll(TURN)));
     return Array.from(document.querySelectorAll<HTMLElement>(RESPONSE)).map((answer, index): AnswerAnchor => {
       const copy = answer.querySelector(COPY) ?? answer.parentElement?.querySelector(COPY) ?? null;
+      const row = copy ? actionRow(copy) : null;
       const body = answer.querySelector(ANSWER_BODY) ?? answer;
       const container = answer.closest(TURN);
       return {
@@ -129,8 +130,8 @@ export const gemini: SiteAdapter = {
         ids: [],
         index,
         key: container ? keys.get(container) : undefined,
-        inRow: Boolean(copy),
-        place: copy ? after(copy) : after(body),
+        inRow: Boolean(row),
+        place: row ? appendTo(row) : after(body),
       };
     });
   },
