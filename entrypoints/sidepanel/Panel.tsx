@@ -210,7 +210,9 @@ export function Panel() {
             <div className="od-account">
               <span>
                 Signed in{auth.account.username ? <> as <strong>@{auth.account.username}</strong></> : null}
-                {auth.account.plan ? <span className="od-faint"> · {auth.account.plan}</span> : null}
+                {auth.account.plan ? (
+                  <span className="od-faint"> · {auth.account.plan.charAt(0).toUpperCase() + auth.account.plan.slice(1)}</span>
+                ) : null}
               </span>
               <button type="button" className="od-btn od-btn-link" onClick={signOut} disabled={busy}>
                 <SignOutIcon size={14} /> Sign out

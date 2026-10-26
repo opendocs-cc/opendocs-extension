@@ -112,7 +112,8 @@ export function parseClaude(conversation: ClaudeConversation): { title: string |
 
     for (const block of blocks) {
       if (block.type === "text" && block.text?.trim()) {
-        let text = normalizeMath(block.text.trim());
+        // Claude writes math as $$…$$ or \(…\), so a $ before a number is money.
+        let text = normalizeMath(block.text.trim(), { escapeCurrency: true });
         const cites = (block.citations ?? []).filter((c) => c.url && /^https?:/i.test(c.url));
         if (cites.length) text += cites.map((c) => citeToken(addSource(turn.sources, { url: c.url!, title: c.title || c.url! }))).join("");
         turn.pieces.push(text);

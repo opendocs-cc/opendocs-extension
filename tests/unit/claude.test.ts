@@ -26,6 +26,7 @@ describe("Claude", () => {
     expect(turns[0]!.answer).not.toContain("private reasoning");
     expect(turns[0]!.answer).not.toContain("earlier draft");
     expect(turns[1]!.key).toBe("m4");
+    expect(turns[1]!.answer).toContain("costs \\$600 a month, or \\$480 on an annual plan");
   });
 
   test("artifacts end at their final version, with the answer that last changed them", () => {

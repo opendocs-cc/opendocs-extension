@@ -32,6 +32,8 @@ describe("Gemini (page)", () => {
     expect(first!.answer).toContain("| Year | Balance |");
     expect(first!.answer).toContain("```python\nbalance = 1000 * (1 + 0.05) ** 2\n```");
     expect(first!.answer).toContain("Banks quote this as APY. Rates vary.");
+    // Money stays money; the formula above stays math.
+    expect(first!.answer).toContain("A \\$1,000 deposit at 5% grows to about \\$1,051 in a year.");
     for (const junk of ["Thinking about", "+1", "[cite", "googleusercontent.com/immersive", "Copy", "A=P(1+r/n)"]) {
       expect(first!.answer).not.toContain(junk);
     }

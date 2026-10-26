@@ -53,7 +53,7 @@ export const conversation = {
       index: 3,
       sender: "assistant",
       content: [
-        { type: "text", text: "Updated, and here's the script." },
+        { type: "text", text: "Updated, and here's the script. The pilot costs $600 a month, or $480 on an annual plan." },
         { type: "tool_use", name: "artifacts", input: { command: "update", id: "nda", old_str: "one year", new_str: "two years ($& costs)" } },
         { type: "tool_use", name: "create_file", input: { path: "/mnt/user-data/outputs/count.py", file_text: "print(len(open('nda.md').read().split()))\n" } },
         { type: "tool_use", name: "Write", input: { file_path: "/home/claude/summary.md", content: "## Summary\n\nTwo-year term." } },

@@ -23,6 +23,14 @@ export type HtmlOptions = {
 /** Gemini's inline citation markers. */
 const CITATION_TEXT = [/\[cite_start\]/g, /\[cite:\s*[\d,\s]+\]/g];
 
+/**
+ * A dollar sign in the page's text is money: formulas arrive separately
+ * (KaTeX, data-math). OpenDocs reads `$…$` as math, so "$18 per seat | $180"
+ * would become a formula. They're held as this character through Turndown
+ * (which would escape a backslash) and written as `\$` at the end.
+ */
+const DOLLAR = "\uE00F";
+
 const ALWAYS_REMOVE = [
   "button",
   "script",
@@ -87,9 +95,10 @@ export function htmlToMarkdown(
   const patterns = [...CITATION_TEXT, ...(options.stripText ?? [])];
   const walker = clone.ownerDocument.createTreeWalker(clone, 4 /* NodeFilter.SHOW_TEXT */);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if (node.parentElement?.closest("pre, code")) continue;
+    if (node.parentElement?.closest("pre, code, [data-od-math]")) continue;
     let text = node.textContent ?? "";
     for (const pattern of patterns) text = text.replace(pattern, "");
+    text = text.replaceAll("$", DOLLAR);
     if (text !== node.textContent) node.textContent = text;
   }
 
@@ -149,6 +158,7 @@ export function htmlToMarkdown(
 
   return service
     .turndown(clone as HTMLElement)
+    .replaceAll(DOLLAR, "\\$")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

@@ -10,6 +10,8 @@ export type ApiCall = { method: string; path: string; body: unknown; headers: In
 /** A stand-in for api.opendocs.cc: records calls and answers like OpenDocs. */
 export class MockApi {
   calls: ApiCall[] = [];
+  /** The id anonymous documents get (screenshots use a realistic one). */
+  anonymousId = "anonDoc0000000000001";
   private server: Server | null = null;
 
   async start() {
@@ -38,9 +40,9 @@ export class MockApi {
         if (req.method === "POST" && path === "/api/v1/anonymous/publish") {
           const title = (body as { title?: string })?.title ?? "Untitled";
           json(201, {
-            id: "anonDoc0000000000001",
+            id: this.anonymousId,
             title,
-            url: "https://opendocs.cc/a/anonDoc0000000000001",
+            url: `https://opendocs.cc/a/${this.anonymousId}`,
             claimToken: "odc_test",
             claimUrl: "https://opendocs.cc/claim/odc_test",
             expiresAt: new Date(Date.now() + 24 * 3600_000).toISOString(),
@@ -53,6 +55,33 @@ export class MockApi {
         }
         if (req.method === "GET" && path.endsWith("/export/pdf")) {
           res.writeHead(200, { "Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="doc.pdf"' }).end("%PDF-1.4 test");
+          return;
+        }
+        // A signed-in demo account (the side panel's workspace and project).
+        if (req.method === "GET" && path === "/api/v1/me") {
+          json(200, {
+            userId: "u1",
+            onboarding: { username: "halvard", workspace: { id: "ws1", name: "Halvard Studio", slug: "halvard" } },
+            quota: { documents: { plan: "pro" } },
+          });
+          return;
+        }
+        if (req.method === "GET" && path === "/api/v1/mcp/connection") {
+          json(200, { workspace: { id: "ws1", name: "Halvard Studio", slug: "halvard" }, project: { id: "p-legal", name: "Legal", slug: "legal" } });
+          return;
+        }
+        if (req.method === "GET" && path === "/api/v1/workspaces") {
+          json(200, { workspaces: [{ id: "ws1", name: "Halvard Studio", slug: "halvard", role: "owner" }] });
+          return;
+        }
+        if (req.method === "GET" && path === "/api/v1/projects") {
+          json(200, {
+            projects: [
+              { id: "p-default", workspaceId: "ws1", name: "Default", slug: "default", isDefault: true },
+              { id: "p-legal", workspaceId: "ws1", name: "Legal", slug: "legal", isDefault: false },
+              { id: "p-research", workspaceId: "ws1", name: "Research", slug: "research", isDefault: false },
+            ],
+          });
           return;
         }
         if (path === "/api/v1/extension/events") {
