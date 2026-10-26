@@ -83,3 +83,19 @@ export function actionRow(button: Element, minButtons = 3): Element | null {
   }
   return null;
 }
+
+/** An answer's Copy button, however the site names it: by test id, label or title. */
+export const COPY_LIKE = 'button[data-testid*="copy" i], button[data-test-id*="copy" i], button[aria-label^="Copy" i], button[title^="Copy" i]';
+
+/**
+ * Right after Copy in its icon row: next to the wrapper that holds Copy in
+ * the innermost group of icons, so Publish sits with the icons instead of
+ * at the far end of a stretched row or on a line of its own.
+ */
+export function besideCopy(copy: Element): { row: Element | null; place: (button: HTMLElement) => void } {
+  const row = actionRow(copy, 2);
+  if (!row) return { row: null, place: after(copy) };
+  let child: Element = copy;
+  while (child.parentElement && child.parentElement !== row) child = child.parentElement;
+  return { row, place: after(child) };
+}

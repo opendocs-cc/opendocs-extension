@@ -76,8 +76,8 @@ test("publishes a ChatGPT answer without an account, then updates it at the same
 test("publishes a whole Gemini chat with every question above its answer", async ({ page, api }) => {
   await page.goto("https://gemini.google.com/app/8f2a91b0c3d4e5f6");
   await expect(page.getByRole("button", { name: "Publish to OpenDocs" })).toHaveCount(2);
-  // In the icon row itself, after the last icon (not inside Copy's wrapper).
-  await expect(page.locator('.actions-container-v2 > [data-opendocs="button"]:last-child')).toHaveCount(2);
+  // In the icon row, right after Copy's wrapper (not inside it, not at the far end).
+  await expect(page.locator('.actions-container-v2 > copy-button + [data-opendocs="button"]')).toHaveCount(2);
   await page.getByRole("button", { name: "Publish to OpenDocs" }).first().click();
   const card = page.getByRole("dialog");
   await card.getByRole("button", { name: "Whole chat" }).click();
@@ -97,7 +97,9 @@ test("publishes a Claude answer with its artifact at the final version", async (
   await page.goto(`https://claude.ai/chat/${CLAUDE_CHAT_ID}`);
   const buttons = page.getByRole("button", { name: "Publish to OpenDocs" });
   await expect(buttons).toHaveCount(2);
-  await expect(page.locator('[role="group"] > [data-opendocs="button"]:last-child')).toHaveCount(2);
+  // Right after Copy in each answer's icon row; never in a code block's header or the question's row.
+  await expect(page.locator('[role="group"] > span:has(> button[aria-label="Copy"]) + [data-opendocs="button"]')).toHaveCount(2);
+  await expect(page.locator('.code-block [data-opendocs], [data-testid="user-message"] ~ div [data-opendocs]')).toHaveCount(0);
 
   await buttons.nth(1).click();
   const card = page.getByRole("dialog");

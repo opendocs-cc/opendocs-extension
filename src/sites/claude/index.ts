@@ -1,13 +1,14 @@
 import { htmlToMarkdown } from "../../markdown/html";
 import { normalizeMath } from "../../markdown/math";
 import { hashKey, type Extracted, type ImageSource, type Turn } from "../../markdown/model";
-import { actionRow, after, appendTo, cookie, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
+import { after, besideCopy, cookie, COPY_LIKE, pageFetch, ReadError, type AnswerAnchor, type SiteAdapter } from "../types";
 import { parseClaude, type ClaudeConversation } from "./parse";
 
 const CHAT_ID = /\/chat\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
 const RESPONSE = '.font-claude-response, .font-claude-message, [data-testid="assistant-message"]';
 const USER = '[data-testid="user-message"]';
-const COPY = 'button[data-testid="action-bar-copy"]';
+// Claude dropped the action bar's test ids in October 2026; Copy is found by its label.
+const COPY = `button[data-testid="action-bar-copy"], ${COPY_LIKE}`;
 
 export function claudeChatId(pathname: string): string | null {
   return CHAT_ID.exec(pathname)?.[1] ?? null;
@@ -66,18 +67,23 @@ export const claude: SiteAdapter = {
 
   anchors() {
     const answers = responses();
-    const copies = Array.from(document.querySelectorAll<HTMLElement>(COPY));
+    const users = Array.from(document.querySelectorAll<HTMLElement>(USER));
+    const copies = Array.from(document.querySelectorAll<HTMLElement>(COPY)).filter((button) => !button.closest("pre, code"));
+    const within = (start: Element, end: Element | undefined, node: Element) =>
+      (start === node || start.contains(node) || start.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+      (!end || end.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING);
     return answers.map((answer, index): AnswerAnchor => {
-      // The copy button that follows this answer, before the next answer starts.
-      const next = answers[index + 1];
-      const copy = copies.find(
-        (button) =>
-          answer.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING &&
-          (!next || next.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_PRECEDING) &&
-          !button.closest(USER),
-      );
-      const row = copy ? actionRow(copy) : null;
-      return { answer, ids: [], index, inRow: Boolean(row), place: row ? appendTo(row) : copy ? after(copy) : after(answer) };
+      // The answer's own Copy: the last one between the answer and whichever
+      // comes first, the next question or the next answer (code blocks and
+      // the next question have Copy buttons of their own).
+      const nextUser = users.find((user) => answer.compareDocumentPosition(user) & Node.DOCUMENT_POSITION_FOLLOWING && !answer.contains(user));
+      const nextAnswer = answers[index + 1];
+      const end = [nextUser, nextAnswer]
+        .filter((node): node is HTMLElement => Boolean(node))
+        .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))[0];
+      const copy = copies.filter((button) => within(answer, end, button) && !button.closest(USER)).pop();
+      const spot = copy ? besideCopy(copy) : null;
+      return { answer, ids: [], index, inRow: Boolean(spot?.row), place: spot ? spot.place : after(answer) };
     });
   },
 

@@ -3,22 +3,41 @@
 <head><title>Mutual NDA for the Halvard pilot - Claude</title></head>
 <body style="background:#262624;color:#f5f4ef;font-family:system-ui">
 <main>
-  <div data-test-render-count="1"><div data-testid="user-message"><p>Draft a one-page mutual NDA.</p></div></div>
   <div data-test-render-count="1">
-    <div class="font-claude-response"><p>Here is the draft. The penalty is 2% per month.</p></div>
-    <div role="group" aria-label="Message actions" style="display:flex">
-      <span><button data-testid="action-bar-copy" aria-label="Copy">Copy</button></span>
-      <button aria-label="Read aloud">Speak</button><button aria-label="Give positive feedback">Up</button>
-      <button aria-label="Give negative feedback">Down</button><button aria-label="Retry">Retry</button>
+    <div data-testid="user-message"><p>Draft a one-page mutual NDA.</p></div>
+    <div class="flex"><span><button aria-label="Copy message">Copy</button></span><button aria-label="Edit">Edit</button></div>
+  </div>
+  <div data-test-render-count="1">
+    <div class="font-claude-response">
+      <p>Here is the draft. The penalty is 2% per month.</p>
+      <div class="code-block"><div class="header"><span>text</span><button aria-label="Copy to clipboard">Copy</button></div><pre><code>NDA v1</code></pre></div>
+      <div class="flex items-stretch justify-between">
+        <div role="group" aria-label="Message actions" style="display:flex">
+          <span data-state="closed"><button aria-label="Copy">Copy</button></span>
+          <span><button aria-label="Read aloud">Speak</button></span>
+          <span><button aria-label="Give positive feedback">Up</button></span>
+          <span><button aria-label="Give negative feedback">Down</button></span>
+          <span><button aria-label="Retry">Retry</button></span>
+        </div>
+      </div>
     </div>
   </div>
-  <div data-test-render-count="1"><div data-testid="user-message"><p>Make the term two years, and add a script to count words.</p></div></div>
   <div data-test-render-count="1">
-    <div class="font-claude-response"><p>Updated, and here's the script.</p></div>
-    <div role="group" aria-label="Message actions" style="display:flex">
-      <span><button data-testid="action-bar-copy" aria-label="Copy">Copy</button></span>
-      <button aria-label="Read aloud">Speak</button><button aria-label="Give positive feedback">Up</button>
-      <button aria-label="Give negative feedback">Down</button><button aria-label="Retry">Retry</button>
+    <div data-testid="user-message"><p>Make the term two years, and add a script to count words.</p></div>
+    <div class="flex"><span><button aria-label="Copy message">Copy</button></span><button aria-label="Edit">Edit</button></div>
+  </div>
+  <div data-test-render-count="1">
+    <div class="font-claude-response">
+      <p>Updated, and here's the script.</p>
+      <div class="flex items-stretch justify-between">
+        <div role="group" aria-label="Message actions" style="display:flex">
+          <span data-state="closed"><button aria-label="Copy">Copy</button></span>
+          <span><button aria-label="Read aloud">Speak</button></span>
+          <span><button aria-label="Give positive feedback">Up</button></span>
+          <span><button aria-label="Give negative feedback">Down</button></span>
+          <span><button aria-label="Retry">Retry</button></span>
+        </div>
+      </div>
     </div>
   </div>
 </main>
