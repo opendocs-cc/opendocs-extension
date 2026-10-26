@@ -8,3 +8,4 @@ playwright-report
 *.pem
 store/screenshots/capture
 store/studio/out
+.DS_Store
