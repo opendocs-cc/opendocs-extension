@@ -101,3 +101,38 @@ test("the welcome page asks for agreement once", async ({ context, extensionId }
   await welcome.reload();
   await expect(welcome.getByText("You're all set.")).toBeVisible();
 });
+
+test("starting the page script again in an open chat tab leaves one working button", async ({ page, context, api }) => {
+  void api;
+  await page.goto(`https://chatgpt.com/c/${CHAT_ID}`);
+  const button = page.getByRole("button", { name: "Publish to OpenDocs" });
+  await expect(button).toHaveCount(1);
+  await page.evaluate(() => document.querySelector('[data-opendocs="button"]')?.setAttribute("data-old", ""));
+
+  // What the service worker does on install and update for chat tabs that are already open.
+  const [worker] = context.serviceWorkers();
+  const injected = await worker!.evaluate(async () => {
+    type Chrome = {
+      runtime: { getManifest(): { content_scripts?: Array<{ matches?: string[]; js?: string[] }> } };
+      tabs: { query(query: { url?: string[] }): Promise<Array<{ id?: number; url?: string }>> };
+      scripting: { executeScript(injection: { target: { tabId: number }; files: string[] }): Promise<unknown> };
+    };
+    const c = (globalThis as unknown as { chrome: Chrome }).chrome;
+    const results: string[] = [];
+    for (const script of c.runtime.getManifest().content_scripts ?? []) {
+      for (const tab of await c.tabs.query({ url: script.matches })) {
+        await c.scripting.executeScript({ target: { tabId: tab.id! }, files: script.js! });
+        results.push(tab.url ?? "");
+      }
+    }
+    return results;
+  });
+  expect(injected).toEqual([`https://chatgpt.com/c/${CHAT_ID}`]);
+
+  // The new copy owns the page: the old button is gone and there's exactly one.
+  await expect
+    .poll(() => page.evaluate(() => [document.querySelectorAll('[data-opendocs="button"]').length, document.querySelectorAll("[data-old]").length]))
+    .toEqual([1, 0]);
+  await button.click();
+  await expect(page.getByRole("dialog").getByLabel("Title")).toHaveValue("Pilot pricing");
+});

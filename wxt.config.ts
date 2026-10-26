@@ -25,7 +25,14 @@ export default defineConfig({
       "Turn any ChatGPT, Claude or Gemini answer or chat into a clean document: a link to share and a PDF. No account needed.",
     homepage_url: "https://opendocs.cc/extension",
     minimum_chrome_version: "116",
-    permissions: ["identity", "storage", "sidePanel"],
+    // scripting: starts the page script in chat tabs that were open before
+    // install or an update (Chrome only runs declared ones in new page loads).
+    permissions: ["identity", "storage", "sidePanel", "scripting"],
+    // The same three sites as the content scripts (so the install warning is
+    // unchanged). Declared so the side panel can ask for them again when
+    // someone sets Site access to "On click", and so the extension can start
+    // in tabs that were open before it was installed.
+    host_permissions: ["https://chatgpt.com/*", "https://claude.ai/*", "https://gemini.google.com/*"],
     action: { default_title: "OpenDocs" },
     ...(process.env.OPENDOCS_STORE_BUILD === "1" ? {} : { key: devKey }),
   }),

@@ -105,19 +105,42 @@ function makeButton(site: SiteAdapter, answer: HTMLElement, anchorFor: () => Ans
   return host;
 }
 
+/**
+ * The copy of this script that owns the page. After an update the extension
+ * starts a new copy in tabs that were already open; the newest one marks the
+ * page as its own, and any older copy (orphaned by the update, or started
+ * twice) sees that on its next scan and removes its own buttons.
+ */
+const OWNER = "data-opendocs-owner";
+
 export function startContent(site: SiteAdapter): void {
+  const instance = Math.random().toString(36).slice(2);
+  document.documentElement.setAttribute(OWNER, instance);
+  for (const stale of Array.from(document.querySelectorAll("[data-opendocs]"))) stale.remove();
+  const owned = () => document.documentElement.getAttribute(OWNER) === instance;
+  const created = new Set<HTMLElement>();
+
   const buttons = new WeakMap<HTMLElement, HTMLElement>();
   let anchors: AnswerAnchor[] = [];
   let reportedAnchors = false;
   let settleTimer: ReturnType<typeof setTimeout> | undefined;
 
   const scan = () => {
+    // Updated, removed or replaced by a newer copy: stop and take this copy's buttons along.
+    if (!browser.runtime?.id || !owned()) {
+      observer.disconnect();
+      clearTimeout(settleTimer);
+      for (const node of created) node.remove();
+      created.clear();
+      return;
+    }
     anchors = site.anchors();
     for (const anchor of anchors) {
       const existing = buttons.get(anchor.answer);
       if (existing?.isConnected) continue;
       const button = existing ?? makeButton(site, anchor.answer, () => anchors.find((a) => a.answer === anchor.answer));
       buttons.set(anchor.answer, button);
+      created.add(button);
       try {
         anchor.place(button);
       } catch {
@@ -150,7 +173,7 @@ export function startContent(site: SiteAdapter): void {
   scan();
 
   browser.runtime.onMessage.addListener((request: TabRequest, sender, sendResponse) => {
-    if (sender.id !== browser.runtime.id) return false;
+    if (sender.id !== browser.runtime.id || !owned()) return false;
     if (request.type === "ping") {
       sendResponse({ site: site.id, chat: site.chatId() !== null, answers: site.hasAnswers() });
       return false;

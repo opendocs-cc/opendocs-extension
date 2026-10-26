@@ -6,7 +6,10 @@ import { send, type DestinationChoices, type TabRequest } from "../../src/messag
 import { PublishError, SITE_NAMES, type AuthState, type PublishRecord, type Visibility } from "../../src/types";
 import { Mark } from "../../src/ui/Mark";
 
-type TabInfo = { tabId: number; chat: boolean; answers: boolean } | null;
+type TabInfo = { tabId: number; chat: boolean; answers: boolean; needsReload?: boolean } | null;
+
+const CHAT_SITE = /^https:\/\/(?:chatgpt\.com|claude\.ai|gemini\.google\.com)\//;
+const SITE_ORIGINS = ["https://chatgpt.com/*", "https://claude.ai/*", "https://gemini.google.com/*"];
 
 const SITES = [
   { name: "ChatGPT", url: "https://chatgpt.com" },
@@ -35,7 +38,8 @@ async function activeChat(): Promise<TabInfo> {
     const reply = (await browser.tabs.sendMessage(tab.id, { type: "ping" } satisfies TabRequest)) as { chat: boolean; answers: boolean };
     return { tabId: tab.id, ...reply };
   } catch {
-    return null;
+    // A chat site where the extension isn't running yet (open since before it was installed).
+    return tab.url && CHAT_SITE.test(tab.url) ? { tabId: tab.id, chat: true, answers: false, needsReload: true } : null;
   }
 }
 
@@ -45,9 +49,12 @@ export function Panel() {
   const [recent, setRecent] = useState<PublishRecord[]>([]);
   const [tab, setTab] = useState<TabInfo>(null);
   const [busy, setBusy] = useState(false);
+  // Chrome's Site access can be set to "On click"; then nothing runs on the chat sites.
+  const [siteAccess, setSiteAccess] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    void browser.permissions.contains({ origins: SITE_ORIGINS }).then(setSiteAccess).catch(() => undefined);
     const [state, records, info] = await Promise.all([
       send({ type: "auth-state" }).catch(() => ({ signedIn: false }) as AuthState),
       send({ type: "recent" }).catch(() => []),
@@ -142,7 +149,35 @@ export function Panel() {
 
       <section className="od-section" aria-labelledby="od-tab">
         <h2 id="od-tab">This tab</h2>
-        {tab?.answers ? (
+        {!siteAccess ? (
+          <>
+            <p className="od-muted">OpenDocs needs your permission to show Publish on ChatGPT, Claude and Gemini.</p>
+            <button
+              type="button"
+              className="od-btn od-btn-primary"
+              onClick={() =>
+                void browser.permissions.request({ origins: SITE_ORIGINS }).then(async (granted) => {
+                  setSiteAccess(granted);
+                  if (granted && tab) await browser.tabs.reload(tab.tabId);
+                  setTimeout(() => void activeChat().then(setTab), 1500);
+                })
+              }
+            >
+              Allow on these sites
+            </button>
+          </>
+        ) : tab?.needsReload ? (
+          <>
+            <p className="od-muted">OpenDocs isn&apos;t running in this tab yet. Reload it to see Publish under each answer.</p>
+            <button
+              type="button"
+              className="od-btn od-btn-primary"
+              onClick={() => void browser.tabs.reload(tab.tabId).then(() => setTimeout(() => void activeChat().then(setTab), 1500))}
+            >
+              Reload this tab
+            </button>
+          </>
+        ) : tab?.answers ? (
           <div className="od-buttons">
             <button type="button" className="od-btn od-btn-primary" disabled={busy} onClick={() => publishFromPanel("chat")}>
               Publish this chat

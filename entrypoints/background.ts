@@ -59,6 +59,24 @@ async function handle(request: Request, sender: Browser.runtime.MessageSender): 
   }
 }
 
+/**
+ * Chrome runs declared content scripts only in pages loaded after the
+ * extension is installed or updated. Chat tabs that were already open get
+ * them here, so the Publish button shows up without a reload.
+ */
+async function startInOpenTabs(): Promise<void> {
+  for (const script of browser.runtime.getManifest().content_scripts ?? []) {
+    if (!script.js?.length || !script.matches?.length) continue;
+    const tabs = await browser.tabs.query({ url: script.matches }).catch(() => []);
+    for (const tab of tabs) {
+      if (tab.id === undefined || tab.discarded) continue;
+      await browser.scripting
+        .executeScript({ target: { tabId: tab.id }, files: script.js } as Parameters<typeof browser.scripting.executeScript>[0])
+        .catch(() => undefined);
+    }
+  }
+}
+
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((request: Request, sender, sendResponse) => {
     // Only this extension's own pages and content scripts.
@@ -74,6 +92,7 @@ export default defineBackground(() => {
     // Tokens stay out of reach of content scripts.
     void browser.storage.local.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" })?.catch(() => undefined);
     void browser.runtime.setUninstallURL(`${config.webUrl}/extension/uninstalled`).catch(() => undefined);
+    if (details.reason === "install" || details.reason === "update") void startInOpenTabs();
     if (details.reason === "install") void browser.tabs.create({ url: browser.runtime.getURL("/welcome.html") });
   });
 });
