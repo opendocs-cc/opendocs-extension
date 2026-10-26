@@ -96,7 +96,15 @@ history, user activity (clicks, keystrokes), other sites' content.
 | --- | --- | --- |
 | Icon | 128 × 128 | `public/icon/128.png` (in the package) |
 | Small promo tile | 440 × 280 | `store/promo-440x280.png` |
-| Screenshots (up to 5) | 1280 × 800 (or 640 × 400) | Take on the real sites with demo chats (no private content): the button and card on ChatGPT, the whole-chat card on Gemini, the published page, the PDF, the side panel. A 16:10 window scales exactly to 1280 × 800. `store/screenshots/raw/` has drafts of the extension's own UI. |
+| Marquee promo tile | 1400 × 560 | `store/marquee-1400x560.jpg` |
+| Screenshots (5) | 1280 × 800 | `store/screenshots/1-…` to `5-…` (JPEG): the card on ChatGPT, the published result, the document page and PDF, the whole chat on Claude, and the signed-in card and side panel on Gemini. |
+
+The screenshots show the real extension on demo chat pages styled after each
+app (no logos, invented content), and a real OpenDocs page and PDF. To make
+them again: `node store/studio/build-pages.mjs`, then
+`STORE_SHOTS=1 npx playwright test store-shots`, capture a document page and
+PDF into `store/screenshots/capture/` (`document-page.png`,
+`document.pdf.png`), then `node store/studio/compose.mjs`.
 
 ## Reviewer notes (Chrome "Test instructions")
 

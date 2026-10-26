@@ -95,7 +95,8 @@ test("store screenshots", async ({ context, page, extensionId, api }) => {
   );
 
   const gemini = await context.newPage();
-  await gemini.setViewportSize({ width: 1060, height: 900 });
+  // As tall as the store frame shows, so the card opens above the button and fits.
+  await gemini.setViewportSize({ width: 1060, height: 760 });
   await gemini.goto("https://gemini.google.com/app/8f2a91b0c3d4e5f6");
   await gemini.getByRole("button", { name: "Publish to OpenDocs" }).click();
   await expect(gemini.getByRole("dialog")).toContainText("Goes to");
@@ -106,7 +107,7 @@ test("store screenshots", async ({ context, page, extensionId, api }) => {
 
   const panel = await context.newPage();
   await panel.emulateMedia({ colorScheme: "dark" });
-  await panel.setViewportSize({ width: 380, height: 900 });
+  await panel.setViewportSize({ width: 380, height: 760 });
   await panel.goto(`chrome-extension://${extensionId}/sidepanel.html`);
   // With the chat tab in front, the panel offers to publish it.
   await gemini.bringToFront();
