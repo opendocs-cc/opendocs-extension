@@ -130,7 +130,7 @@ export const gemini: SiteAdapter = {
         ids: [],
         index,
         key: container ? keys.get(container) : undefined,
-        inRow: Boolean(spot?.row),
+        row: spot?.row ?? null,
         place: spot ? spot.place : after(body),
       };
     });

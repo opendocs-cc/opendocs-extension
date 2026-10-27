@@ -160,6 +160,38 @@ test("publishes a Claude answer with its artifact at the final version", async (
   expect(markdown).not.toContain("private reasoning");
 });
 
+test("a new ChatGPT answer gets its button in its own row, not the question's", async ({ page }) => {
+  await page.goto(`https://chatgpt.com/c/${CHAT_ID}`);
+  await expect(page.getByRole("button", { name: "Publish to OpenDocs" })).toHaveCount(1);
+
+  // A new turn as ChatGPT renders it while answering: the question with its
+  // row (copy, edit), then the answer, then the answer's row once it's written.
+  await page.evaluate(() => {
+    const container = document.createElement("div");
+    container.setAttribute("data-turn-id-container", "");
+    container.innerHTML = `<div data-turn-key="t-3">
+      <div data-chatgpt-search-message-ids="u3"><div class="bg-user-message"><div class="whitespace-pre-wrap">Hi</div></div></div>
+      <div class="turn-action-controls"><button aria-label="Copy message">Copy</button><button aria-label="Edit message">Edit</button></div>
+      <div data-chatgpt-search-message-ids="a3"><div class="markdown"><p>Hi! What can I help</p></div></div>
+    </div>`;
+    document.querySelector("main [data-chatgpt-conversation-selection-target]")!.append(container);
+  });
+  const turn = page.locator('[data-turn-key="t-3"]');
+  await expect(turn.locator('[data-opendocs="button"]')).toHaveCount(1);
+
+  await page.evaluate(() => {
+    const turn = document.querySelector('[data-turn-key="t-3"]')!;
+    turn.querySelector(".markdown p")!.textContent = "Hi! What can I help you with today?";
+    turn.insertAdjacentHTML(
+      "beforeend",
+      `<div class="turn-action-controls"><button aria-label="Copy">Copy</button><button aria-label="Good response">Like</button><button aria-label="Share">Share</button></div>`,
+    );
+  });
+  await expect(turn.locator(".turn-action-controls").last().locator('[data-opendocs="button"]')).toHaveCount(1);
+  await expect(turn.locator(".turn-action-controls").first().locator('[data-opendocs="button"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Publish to OpenDocs" })).toHaveCount(2);
+});
+
 test("ChatGPT's older layout still gets a button", async ({ page }) => {
   await page.goto(`https://chatgpt.com/c/${LEGACY_CHAT_ID}`);
   await expect(page.getByRole("button", { name: "Publish to OpenDocs" })).toHaveCount(1);

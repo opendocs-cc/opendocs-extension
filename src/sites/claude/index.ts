@@ -83,7 +83,7 @@ export const claude: SiteAdapter = {
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))[0];
       const copy = copies.filter((button) => within(answer, end, button) && !button.closest(USER)).pop();
       const spot = copy ? besideCopy(copy) : null;
-      return { answer, ids: [], index, inRow: Boolean(spot?.row), place: spot ? spot.place : after(answer) };
+      return { answer, ids: [], index, row: spot?.row ?? null, place: spot ? spot.place : after(answer) };
     });
   },
 

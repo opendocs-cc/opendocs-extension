@@ -98,7 +98,7 @@ function makeButton(site: SiteAdapter, answer: HTMLElement, anchorFor: () => Ans
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    const anchor = anchorFor() ?? { answer, ids: [], index: 0, inRow: false, place: () => undefined };
+    const anchor = anchorFor() ?? { answer, ids: [], index: 0, row: null, place: () => undefined };
     openCard(site, anchor, "answer", host);
   });
   shadow.append(style, button);
@@ -137,15 +137,15 @@ export function startContent(site: SiteAdapter): void {
     anchors = site.anchors();
     for (const anchor of anchors) {
       const existing = buttons.get(anchor.answer);
-      // Placed after the answer earlier, and the row has appeared since (some
-      // sites render it on hover): move it into the row.
-      if (existing?.isConnected && (existing.dataset.placed === "row" || !anchor.inRow)) continue;
+      // Placed already, unless the answer has a row the button isn't in: the
+      // row appeared since (some sites render it on hover, others once the
+      // answer is written), so move it there.
+      if (existing?.isConnected && (!anchor.row || anchor.row.contains(existing))) continue;
       const button = existing ?? makeButton(site, anchor.answer, () => anchors.find((a) => a.answer === anchor.answer));
       buttons.set(anchor.answer, button);
       created.add(button);
       try {
         anchor.place(button);
-        button.dataset.placed = anchor.inRow ? "row" : "after";
       } catch {
         // The row moved under us; the next scan places it.
       }
@@ -154,7 +154,7 @@ export function startContent(site: SiteAdapter): void {
     clearTimeout(settleTimer);
     settleTimer = setTimeout(() => {
       const settled = anchors.slice(0, -1);
-      if (!reportedAnchors && settled.length > 0 && settled.every((a) => !a.inRow)) {
+      if (!reportedAnchors && settled.length > 0 && settled.every((a) => !a.row)) {
         reportedAnchors = true;
         void send({ type: "failure", site: site.id, stage: "anchors", code: "no_action_row" }).catch(() => undefined);
       }

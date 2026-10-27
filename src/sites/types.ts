@@ -13,8 +13,8 @@ export type AnswerAnchor = {
   key?: string;
   /** Position among the answers on the page. */
   index: number;
-  /** False when the action row wasn't found and the button went after the answer instead. */
-  inRow: boolean;
+  /** The answer's action row, or null when it wasn't found (yet) and the button goes after the answer instead. */
+  row: Element | null;
 };
 
 /**

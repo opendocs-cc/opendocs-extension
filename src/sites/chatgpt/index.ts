@@ -54,9 +54,13 @@ function redesignedAnswers(thread: Element): PageAnswer[] {
   for (const turn of turns) {
     const assistant = outermostUnits(turn).filter((unit) => !isUserUnit(unit));
     if (assistant.length === 0) continue;
-    // The answer's row comes after the user's (edit, copy) when a turn holds both.
-    const row = Array.from(turn.querySelectorAll(ACTIONS)).pop() ?? null;
-    answers.push({ element: turn, ids: assistant.flatMap(unitIds), content: assistant[assistant.length - 1]!, row });
+    // When a turn holds both, the user's row (edit, copy) comes before the
+    // answer and the answer's own row after it, once the answer is written.
+    const content = assistant[assistant.length - 1]!;
+    const row = Array.from(turn.querySelectorAll(ACTIONS))
+      .filter((actions) => content.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .pop() ?? null;
+    answers.push({ element: turn, ids: assistant.flatMap(unitIds), content, row });
   }
   return answers;
 }
@@ -186,7 +190,7 @@ export const chatgpt: SiteAdapter = {
         answer: answer.element,
         ids: answer.ids,
         index,
-        inRow: Boolean(answer.row),
+        row: answer.row,
         place: answer.row ? appendTo(answer.row) : after(answer.content),
       }),
     );
