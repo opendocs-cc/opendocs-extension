@@ -73,6 +73,21 @@ test("publishes a ChatGPT answer without an account, then updates it at the same
   expect(api.find("PUT", "/api/v1/anonymous/anonDoc0000000000001")).toBeTruthy();
 });
 
+test("a long link ends with an ellipsis instead of widening the card", async ({ page, api }) => {
+  api.anonymousId = "lung-capacity-and-breathing-during-the-third-trimester-0001";
+  await page.goto(`https://chatgpt.com/c/${CHAT_ID}`);
+  await page.getByRole("button", { name: "Publish to OpenDocs" }).click();
+  const card = page.getByRole("dialog");
+  await card.getByRole("button", { name: "Agree and publish" }).click();
+  await expect(card).toContainText("Published.");
+
+  const link = card.getByRole("link", { name: /^opendocs\.cc\/a\/lung-capacity/ });
+  // The link is cut short, and nothing in the card scrolls sideways.
+  expect(await link.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+  expect(await card.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await expect(card.getByRole("button", { name: "PDF" })).toBeInViewport({ ratio: 1 });
+});
+
 // `api` mocks OpenDocs for the test.
 test("asks for a rating from the third publish, and not again once answered", async ({ page, api: _api }) => {
   await page.goto(`https://chatgpt.com/c/${CHAT_ID}`);

@@ -63,6 +63,8 @@
 
 .od-stack {
   display: grid;
+  /* One column as wide as the card: long content (a link) shrinks instead of widening it. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
